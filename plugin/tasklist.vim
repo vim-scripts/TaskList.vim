@@ -159,6 +159,7 @@ function! s:OpenWindow(buffnr, lineno)
     " Clean up.
     let @z = ""
     set nomodified
+    set nomodifiable
 endfunction
 
 " Function: Search file {{{1
@@ -378,7 +379,7 @@ nnoremap <unique> <script> <Plug>TaskList :TaskList<CR>
 " TODO: perfect simply solution: setup directory for [text_buffer, tasklist_buffer]
 
 " Function: open task list for toggle {{{1
-let s:tasklist_open = 0
+let s:is_tasklist_open = 0
 function! s:OpenTaskList()
     let has_task_info = 0
     let has_task_info = s:TaskList()
@@ -386,7 +387,7 @@ function! s:OpenTaskList()
         " No task info found
         return
     endif
-    let s:tasklist_open = 1
+    let s:is_tasklist_open = 1
 endfunction
 " }}}
 
@@ -398,9 +399,9 @@ function! s:CloseTaskList()
         let tasklist_bufwinnr = bufwinnr(tasklist_bufnr)
         exec tasklist_bufwinnr . 'wincmd w'
         call s:Exit(0)
-        let s:tasklist_open = 0
+        let s:is_tasklist_open = 0
     else
-        " Tasklist windows was closed by 'q', so 's:tasklist_open' can not
+        " Tasklist windows was closed by 'q', so 's:is_tasklist_open' can not
         " be reset.
         call s:OpenTaskList()
         return
@@ -410,7 +411,7 @@ endfunction
 
 " Function: Support toggle {{{1
 function! s:ToggleTaskList()
-    if (s:tasklist_open == 0)
+    if (s:is_tasklist_open == 0)
         call s:OpenTaskList()
     else
         call s:CloseTaskList()
