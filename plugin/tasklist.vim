@@ -183,7 +183,7 @@ function! s:SearchFile(hits, word)
         if foldlevel(l:curr_line) != 0
             normal! 99zo
         endif
-        if l:div == 0 
+        if l:div == 0
             if a:hits != 0
                 let @z = @z."\n"
             endif
@@ -322,7 +322,8 @@ function! s:TaskList()
         echo "tasklist.vim: No task information found."
         echohl None
         execute 'normal! '.l:original_line.'G'
-        return
+        " -1 means there is no task info found.
+        return -1
     endif
 
     " display window
@@ -364,12 +365,36 @@ endfunction
 " Command
 command! TaskList call s:TaskList()
 
+" Comment out below key map to avoid conflict with tagbar.
 " Default key map
-if !hasmapto('<Plug>TaskList')
-    map <unique> <Leader>t <Plug>TaskList
-endif
+" if !hasmapto('<Plug>TaskList')
+"     map <Leader>t <Plug>TaskList
+" endif
 
 " Key map to Command
 nnoremap <unique> <script> <Plug>TaskList :TaskList<CR>
+
+" Function: Support toggle {{{1
+let s:tasklist_open = 0
+function! s:ToggleTaskList()
+    if (s:tasklist_open == 1)
+        call s:Exit(0)
+        let s:tasklist_open = 0
+    else
+        let has_task_info = 0
+        let has_task_info = s:TaskList()
+        if (has_task_info == -1)
+            return
+        endif
+        let s:tasklist_open = 1
+    endif
+endfunction
+" }}}
+
+" Toggle Command
+command! ToggleTaskList call s:ToggleTaskList()
+
+" Key map to Toggle Command
+nnoremap <unique> <script> <Plug>ToggleTaskList :ToggleTaskList<CR>
 
 " vim:fdm=marker:tw=75:ff=unix:
