@@ -134,9 +134,9 @@ endif
 function! s:OpenWindow(buffnr, lineno)
     " Open results window and place items there.
     if g:tlWindowPosition == 0
-      execute 'sp -TaskList_'.a:buffnr.'-'
+      execute 'silent sp -TaskList_'.a:buffnr.'-'
     else
-      execute 'botright sp -TaskList_'.a:buffnr.'-'
+      execute 'silent botright sp -TaskList_'.a:buffnr.'-'
     endif
 
     let b:original_buffnr = a:buffnr
@@ -144,7 +144,7 @@ function! s:OpenWindow(buffnr, lineno)
 
     set noswapfile
     set modifiable
-    normal! "zPGddgg
+    silent normal! "zPGddgg
     set fde=getline(v:lnum)[0]=='L'
     set foldmethod=expr
     set foldlevel=0
@@ -159,7 +159,7 @@ function! s:OpenWindow(buffnr, lineno)
     " Clean up.
     let @z = ""
     set nomodified
-    set nomodifiable
+    setlocal nomodifiable
 endfunction
 
 " Function: Search file {{{1
