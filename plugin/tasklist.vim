@@ -134,7 +134,7 @@ endif
 function! s:OpenWindow(buffnr, lineno)
     " Open results window and place items there.
     if g:tlWindowPosition == 0
-      execute 'sp -TaskList_'.a:buffnr.'-'
+      execute 'topleft sp -TaskList_'.a:buffnr.'-'
     else
       execute 'botright sp -TaskList_'.a:buffnr.'-'
     endif
