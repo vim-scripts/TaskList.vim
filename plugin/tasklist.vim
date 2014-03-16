@@ -134,9 +134,9 @@ endif
 function! s:OpenWindow(buffnr, lineno)
     " Open results window and place items there.
     if g:tlWindowPosition == 0
-      execute 'sp -TaskList_'.a:buffnr.'-'
+      execute 'silent sp -TaskList_'.a:buffnr.'-'
     else
-      execute 'botright sp -TaskList_'.a:buffnr.'-'
+      execute 'silent botright sp -TaskList_'.a:buffnr.'-'
     endif
 
     let b:original_buffnr = a:buffnr
@@ -144,7 +144,7 @@ function! s:OpenWindow(buffnr, lineno)
 
     set noswapfile
     set modifiable
-    normal! "zPGddgg
+    silent normal! "zPGddgg
     set fde=getline(v:lnum)[0]=='L'
     set foldmethod=expr
     set foldlevel=0
@@ -159,6 +159,7 @@ function! s:OpenWindow(buffnr, lineno)
     " Clean up.
     let @z = ""
     set nomodified
+    setlocal nomodifiable
 endfunction
 
 " Function: Search file {{{1
@@ -183,7 +184,7 @@ function! s:SearchFile(hits, word)
         if foldlevel(l:curr_line) != 0
             normal! 99zo
         endif
-        if l:div == 0 
+        if l:div == 0
             if a:hits != 0
                 let @z = @z."\n"
             endif
@@ -322,7 +323,8 @@ function! s:TaskList()
         echo "tasklist.vim: No task information found."
         echohl None
         execute 'normal! '.l:original_line.'G'
-        return
+        " -1 means there is no task info found.
+        return -1
     endif
 
     " display window
@@ -364,12 +366,63 @@ endfunction
 " Command
 command! TaskList call s:TaskList()
 
+" Comment out below key map to avoid conflict with tagbar.
 " Default key map
-if !hasmapto('<Plug>TaskList')
-    map <unique> <Leader>t <Plug>TaskList
-endif
+" if !hasmapto('<Plug>TaskList')
+"     map <Leader>t <Plug>TaskList
+" endif
 
 " Key map to Command
 nnoremap <unique> <script> <Plug>TaskList :TaskList<CR>
+
+" Quick-and-dirty toggle soluton.
+" TODO: perfect simply solution: setup directory for [text_buffer, tasklist_buffer]
+
+" Function: open task list for toggle {{{1
+let s:is_tasklist_open = 0
+function! s:OpenTaskList()
+    let has_task_info = 0
+    let has_task_info = s:TaskList()
+    if (has_task_info == -1)
+        " No task info found
+        return
+    endif
+    let s:is_tasklist_open = 1
+endfunction
+" }}}
+
+" Function: open task list for toggle {{{1
+function! s:CloseTaskList()
+    let tasklist_bufnr = bufnr('-TaskList_')
+    if (bufloaded(tasklist_bufnr))
+        " tasklist buffer is active.
+        let tasklist_bufwinnr = bufwinnr(tasklist_bufnr)
+        exec tasklist_bufwinnr . 'wincmd w'
+        call s:Exit(0)
+        let s:is_tasklist_open = 0
+    else
+        " Tasklist windows was closed by 'q', so 's:is_tasklist_open' can not
+        " be reset.
+        call s:OpenTaskList()
+        return
+    endif
+endfunction
+" }}}
+
+" Function: Support toggle {{{1
+function! s:ToggleTaskList()
+    if (s:is_tasklist_open == 0)
+        call s:OpenTaskList()
+    else
+        call s:CloseTaskList()
+    endif
+endfunction
+" }}}
+
+" Toggle Command
+command! ToggleTaskList call s:ToggleTaskList()
+
+" Key map to Toggle Command
+nnoremap <unique> <script> <Plug>ToggleTaskList :ToggleTaskList<CR>
 
 " vim:fdm=marker:tw=75:ff=unix:
