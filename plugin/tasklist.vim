@@ -78,6 +78,8 @@
 "       in your vimrc file, options are as follows:
 "           0 = Open on top
 "           1 = Open on the bottom
+"           2 = Open on the left
+"           3 = Open on the right
 "
 " g:tlTokenList
 "       This is the list of tokens to search for default is
@@ -134,9 +136,17 @@ endif
 function! s:OpenWindow(buffnr, lineno)
     " Open results window and place items there.
     if g:tlWindowPosition == 0
-      execute 'sp -TaskList_'.a:buffnr.'-'
+        execute 'sp -TaskList_'.a:buffnr.'-'
     else
-      execute 'botright sp -TaskList_'.a:buffnr.'-'
+        if g:tlWindowPosition == 1
+            execute 'botright sp -TaskList_'.a:buffnr.'-'
+        else
+            if g:tlWindowPosition == 2
+                execute 'vsp -TaskList_'.a:buffnr.'-'
+            else
+                execute 'botright vsp -TaskList_'.a:buffnr.'-'
+            endif
+        endif
     endif
 
     let b:original_buffnr = a:buffnr
@@ -151,9 +161,13 @@ function! s:OpenWindow(buffnr, lineno)
     normal! zR
 
     " Resize line if too big.
-    let l:hits = line("$")
-    if l:hits < winheight(0)
-        sil! exe "resize ".l:hits
+    if g:tlWindowPosition < 2
+        let l:hits = line("$")
+        if l:hits < winheight(0)
+            sil! exe "resize ".l:hits
+        endif
+    else
+        sil! exe "vertical resize 35"
     endif
 
     " Clean up.
@@ -183,7 +197,7 @@ function! s:SearchFile(hits, word)
         if foldlevel(l:curr_line) != 0
             normal! 99zo
         endif
-        if l:div == 0 
+        if l:div == 0
             if a:hits != 0
                 let @z = @z."\n"
             endif
